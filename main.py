@@ -55,10 +55,36 @@ def save_vault(vault, fernet):
     with open(VAULT_FILE, "wb") as f:
         f.write(encrypted_data)
 
+def add_entry(args, vault, fernet):
+    name = args.name
+    if name in vault:
+        print(f"Entry '{name}' already exists.")
+        return
+    
+    vault[name] = {
+        "username": args.username,
+        "password": args.password
+    }
+    save_vault(vault, fernet)
+    print(f"Entry '{name}' added successfully.")
 
-salt = load_salt()
-key  = generate_key("password", salt)
-test_vault = {"YouMail": {"username": "me@youmail.com", "password": "password"}}
-save_vault(test_vault, Fernet(generate_key("mypassword", salt)))
-loaded_vault = load_vault(Fernet(generate_key("mypassword", salt)))
-print(loaded_vault)
+def get_entry(args, vault):
+    name = args.name
+    if name not in vault:
+        print(f"Entry '{name}' not found.")
+        return
+    
+    entry = vault[name]
+    print(f"Entry '{name}':")
+    print(f"Username: {entry['username']}")
+    print(f"Password: {entry['password']}")
+
+def list_entries(args, vault):
+    if not vault:
+        print("Vault is empty.")
+        return
+    
+    print ("Stored entries:")
+    for name in vault:
+        print(f"- {name}")
+
