@@ -88,3 +88,48 @@ def list_entries(args, vault):
     for name in vault:
         print(f"- {name}")
 
+def main():
+    parser = argparse.ArgumentParser(description="CLI Password Manager")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    #Command to add a new entry
+    parser_add = subparsers.add.parser("add", help="Add a new credential")
+    parser_add.add_argument("name", help="Unique name for the credential")
+    parser_add.add_argument("username", help="Username for the credential")
+    parser_add.add_argument("password", help="Password for the credential")
+
+    #Command to retrieve credential
+    parser_get = subparsers.add_parser("get", help="Retrieve a credential")
+    parser_get.add_argument("name", help="Name of the credential to retrieve")
+
+    #Command to list all credential names in the vault
+    subparsers.add_parser("list", help="List all stored credentials")
+
+    #Command to delete a credential
+    parser_delete = subparsers.add_parsers("delete", help="Delete a credential")
+    parser_delete.add_argument("name", help="Name of the credential to delete")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        return
+    
+    master = getpass.getpass("Enter master password: ")
+
+    salt = load_salt()
+    key = generate_key(master, salt)
+    fernet = Fernet(key)
+    vault = load_vault(fernet)
+
+    if args.command == "add":
+        add.entry(args, vault, fernet)
+    elif args.command == "get":
+        get_entry(args, vault)
+    elif args.command == "list":
+        list_entries(args, vault)
+    elif args.command == "delete":
+        delete_entry(args, vault, fernet)
+    else:
+        print("Unknown command.")
+    
+    
